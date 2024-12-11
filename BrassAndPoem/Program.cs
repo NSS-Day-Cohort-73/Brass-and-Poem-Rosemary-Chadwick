@@ -1,65 +1,38 @@
 ﻿//create a "products" variable here to include at least five Product instances. Give them appropriate ProductTypeIds.
 
+using System.Net;
+using System.Runtime.InteropServices;
+
 List<Product> products = new List<Product>
 {
     new Product
     {
-        Name = "Bach Stradivarius Trumpet",
-        Price = 2899.99m,
+        Name = "Trumpet",
+        Price = 150.99M,
         ProductTypeId = 1,
     },
     new Product
     {
-        Name = "Yamaha Professional Trombone",
-        Price = 3299.99m,
+        Name = "Trombone",
+        Price = 246.99M,
         ProductTypeId = 1,
     },
     new Product
     {
-        Name = "Student French Horn",
-        Price = 1499.99m,
+        Name = "Tuba",
+        Price = 1250.99M,
         ProductTypeId = 1,
     },
     new Product
     {
-        Name = "Beginner Euphonium",
-        Price = 1299.99m,
-        ProductTypeId = 1,
-    },
-    new Product
-    {
-        Name = "Professional Tuba",
-        Price = 6999.99m,
-        ProductTypeId = 1,
-    },
-    new Product
-    {
-        Name = "Collected Works of Emily Dickinson",
-        Price = 24.99m,
+        Name = "Ozymandias",
+        Price = 12350.99M,
         ProductTypeId = 2,
     },
     new Product
     {
-        Name = "Modern Love: Contemporary Verses",
-        Price = 19.99m,
-        ProductTypeId = 2,
-    },
-    new Product
-    {
-        Name = "Sonnets Through the Ages",
-        Price = 29.99m,
-        ProductTypeId = 2,
-    },
-    new Product
-    {
-        Name = "Haiku Masters Collection",
-        Price = 15.99m,
-        ProductTypeId = 2,
-    },
-    new Product
-    {
-        Name = "The Art of Poetry: Anthology",
-        Price = 34.99m,
+        Name = "Leaves of Grass",
+        Price = 15650.99M,
         ProductTypeId = 2,
     },
 };
@@ -112,35 +85,161 @@ while (choice != "5")
 
 void DisplayMenu()
 {
-    Console.WriteLine();
     Console.WriteLine(
-        @"Choose an option:
-        1. Display All Products
-        2. Delete a Product
-        3. Add a New Product
-        4. Update Product properties
-        5. Exit"
+        @"1. Display all products
+2. Delete a product
+3. Add a new product
+4. Update product properties
+5. Exit"
     );
 }
 
 void DisplayAllProducts(List<Product> products, List<ProductType> productTypes)
 {
-    throw new NotImplementedException();
+    if (products.Count == 0)
+    {
+        Console.WriteLine("No products in inventory!");
+        return;
+    }
+    var productsWithTypes = products.Select(
+        (product, index) =>
+            new
+            {
+                Number = index + 1,
+                Product = product,
+                TypeName = productTypes.FirstOrDefault(pt => pt.Id == product.ProductTypeId)?.Title
+                    ?? "Unknown Type",
+            }
+    );
+    foreach (var item in productsWithTypes)
+    {
+        Console.WriteLine(
+            $"{item.Number}. {item.Product.Name} ({item.TypeName}) - ${item.Product.Price}"
+        );
+    }
+    Console.WriteLine("\nPress any key to continue...");
 }
 
 void DeleteProduct(List<Product> products, List<ProductType> productTypes)
 {
-    throw new NotImplementedException();
+    if (products.Count == 0)
+    {
+        Console.WriteLine("There are no products to delete at this time.");
+        return;
+    }
+    DisplayAllProducts(products, productTypes);
+    Product chosenProduct = null;
+    int chosenIndex = -1;
+
+    while (chosenProduct == null)
+    {
+        Console.WriteLine("\nPlease enter the number of the product you want to delete:");
+        int response = int.Parse(Console.ReadLine().Trim());
+        chosenIndex = response - 1;
+
+        if (chosenIndex >= 0 && chosenIndex < products.Count)
+        {
+            chosenProduct = products[chosenIndex];
+        }
+        else
+        {
+            Console.WriteLine("Please choose a valid product number.");
+        }
+    }
+    products.RemoveAt(chosenIndex);
+    Console.WriteLine($"{chosenProduct.Name} has been deleted.");
 }
 
 void AddProduct(List<Product> products, List<ProductType> productTypes)
 {
-    throw new NotImplementedException();
+    Console.WriteLine("Enter product name: ");
+    string name = Console.ReadLine();
+    if (string.IsNullOrWhiteSpace(name))
+    {
+        return;
+    }
+
+    decimal price = 0;
+    Console.WriteLine("Enter price: ");
+    while (!decimal.TryParse(Console.ReadLine(), out price) || price < 0)
+    {
+        Console.WriteLine("Please enter a valid number.");
+    }
+    Console.WriteLine("\nProduct Types: ");
+    foreach (var line in productTypes.Select((pt, index) => $"Id: {index + 1} {pt.Title}"))
+    {
+        Console.WriteLine(line);
+    }
+    int typeId = 0;
+    while (true)
+    {
+        Console.WriteLine("Please enter product Id");
+        string input = Console.ReadLine();
+
+        if (!int.TryParse(input, out int choice) || choice < 1 || choice > productTypes.Count)
+        {
+            Console.WriteLine("Please enter a valid product Id.");
+            continue;
+        }
+        typeId = productTypes[choice - 1].Id;
+        break;
+    }
+    //The [] is array/list indexing syntax in C# - it's how you access a specific element in a list or array by its position. [i]
+    Product newProduct = new Product
+    {
+        Name = name,
+        Price = price,
+        ProductTypeId = typeId,
+    };
+    products.Add(newProduct);
+    Console.WriteLine("\nProduct added successfully!");
 }
 
 void UpdateProduct(List<Product> products, List<ProductType> productTypes)
 {
-    throw new NotImplementedException();
+    if (products.Count == 0)
+    {
+        Console.WriteLine("No products to update.");
+        return;
+    }
+
+    DisplayAllProducts(products, productTypes);
+    Product chosenProduct = null;
+    int chosenIndex = -1;
+
+    while (chosenProduct == null)
+    {
+        Console.WriteLine("\nPlease enter the number of the product you want to update:");
+        int response = int.Parse(Console.ReadLine().Trim());
+        chosenIndex = response - 1;
+
+        if (chosenIndex >= 0 && chosenIndex < products.Count)
+        {
+            chosenProduct = products[chosenIndex];
+        }
+        else
+        {
+            Console.WriteLine("Please choose a valid product number.");
+        }
+    }
+
+    Console.Write("Enter new product name (or press Enter to keep current product name): ");
+    string name = Console.ReadLine();
+    if (!string.IsNullOrWhiteSpace(name))
+    {
+        chosenProduct.Name = name;
+    }
+
+    Console.Write("Enter new price (or press Enter to keep current price): ");
+    string priceInput = Console.ReadLine();
+    if (!string.IsNullOrWhiteSpace(priceInput))
+    {
+        if (decimal.TryParse(priceInput, out decimal price) && price >= 0)
+        {
+            chosenProduct.Price = price;
+        }
+    }
+    Console.WriteLine("Product updated successfully!");
 }
 
 // don't move or change this!
